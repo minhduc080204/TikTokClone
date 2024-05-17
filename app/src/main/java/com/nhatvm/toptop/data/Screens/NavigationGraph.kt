@@ -24,10 +24,8 @@ fun FunFactsNavigationGraph(){
             )
         }
         composable(Routes.HOME_SCREEN){
-            HomeScreen(navController)
         }
         composable(Routes.USER_SCREEN){
-            UserScreen(navController)
         }
 
     }

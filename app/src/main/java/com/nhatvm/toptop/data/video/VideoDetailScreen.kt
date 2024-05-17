@@ -101,7 +101,7 @@ fun VideoDetailScreen(
         songname = "Avicii - Waiting for love",
         onAvatarClick = {},
         onLikeClick = {},
-        onCommentClick = {},
+        onCommentClick = onShowComment,
         onShareClick = {},
     )
 }

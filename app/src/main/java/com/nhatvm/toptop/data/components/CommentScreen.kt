@@ -26,22 +26,19 @@ import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
 
 @Composable
-fun CommentScreen(CommentScreen: Boolean, setCommentScreen: (Boolean) -> Unit) {
-    Column (modifier = Modifier.fillMaxSize()){
+fun CommentScreen(videoId: Int, hideCommentScreen: () -> Unit) {
+    Column (modifier = Modifier.fillMaxWidth().height(500.dp)){
         Column (
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
                 .clickable {
-                    setCommentScreen(!CommentScreen)
+                    hideCommentScreen
                 }
         ){
-            Text(text = "??")
         }
         Column(
             modifier = Modifier
                 .background(Color.White)
-                .fillMaxHeight()
         ){
             Row (
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -61,7 +58,7 @@ fun CommentScreen(CommentScreen: Boolean, setCommentScreen: (Boolean) -> Unit) {
                     CommentBar(
                         image = R.drawable.test_avtuser,
                         username = "ductihong82",
-                        comment = "dcmm",
+                        comment = "Video with id: $videoId",
                         time = "20h",
                         like = "2000"
                     )

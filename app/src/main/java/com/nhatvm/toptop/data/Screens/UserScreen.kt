@@ -27,7 +27,7 @@ import androidx.navigation.NavController
 import com.nhatvm.toptop.data.R
 import com.nhatvm.toptop.data.components.CircleImage
 import com.nhatvm.toptop.data.components.LineColor
-import com.nhatvm.toptop.data.components.TabBar
+import com.nhatvm.toptop.data.components.TabBottomBar
 
 @Composable
 fun UserScreen(navController: NavController){
@@ -45,7 +45,6 @@ fun UserScreen(navController: NavController){
             UserVideo()
         }
         Box {
-            TabBar(navController)
         }
     }
 }

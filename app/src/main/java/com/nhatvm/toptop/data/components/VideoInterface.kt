@@ -24,13 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.nhatvm.toptop.data.R
-import com.nhatvm.toptop.data.Screens.Routes
 
 @Composable
 fun VideoInterface(
@@ -48,7 +47,7 @@ fun VideoInterface(
         verticalAlignment = Alignment.Bottom,
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(10.dp)
     ){
         Column (
             modifier = Modifier.weight(1f)
@@ -61,7 +60,7 @@ fun VideoInterface(
                 )
             }
             TextWhite(content)
-            TextBold(hastag.joinToString { " " })
+            TextBold(hastag.joinToString(" "))
             Row (
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -76,26 +75,26 @@ fun VideoInterface(
             CircleImage(
                 image = R.drawable.test_avtuser, size = 45.dp, border = 2.dp,
                 modifier = Modifier
-                    .clickable {onAvatarClick}
+                    .clickable {onAvatarClick()}
             )
             Spacer(modifier = Modifier.size(30.dp))
             ActionVideoInterface(
                 painter = painterResource(id = R.drawable.heart_icon),
                 contentDescription = "heart",
                 number = "174M",
-                onClick = {onLikeClick}
+                onClick = {onLikeClick()}
             )
             ActionVideoInterface(
                 painter = painterResource(id = R.drawable.comment_icon),
                 contentDescription = "comment",
                 number = "82K",
-                onClick = {onCommentClick}
+                onClick = {onCommentClick()}
             )
             ActionVideoInterface(
                 painter = painterResource(id = R.drawable.share_icon),
                 contentDescription = "share",
                 number = "400",
-                onClick = {onShareClick}
+                onClick = {onShareClick()}
             )
             AudioTrackView(trackImg = R.drawable.test_avtuser)
         }
