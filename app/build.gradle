@@ -3,16 +3,17 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'com.google.gms.google-services'
 }
 
 android {
     namespace 'com.nhatvm.toptop.data'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.nhatvm.toptop.data"
         minSdk 24
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -66,14 +67,18 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 
     implementation("com.google.dagger:hilt-android:2.44")
+    implementation 'com.google.firebase:firebase-auth:23.0.0'
+    implementation 'com.google.firebase:firebase-database:21.0.0'
+    implementation 'com.google.firebase:firebase-storage:21.0.0'
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0-alpha01")
 
     implementation "io.coil-kt:coil-compose:2.1.0"
 
-    implementation "androidx.media3:media3-exoplayer:1.0.0"
-    implementation "androidx.media3:media3-exoplayer-dash:1.0.0"
-    implementation "androidx.media3:media3-ui:1.0.0"
+    implementation "androidx.media3:media3-exoplayer:1.2.1"
+    implementation "androidx.media3:media3-exoplayer-dash:1.2.1"
+    implementation "androidx.media3:media3-ui:1.2.1"
+    implementation 'com.google.android.exoplayer:exoplayer:2.17.1'
 
     var room_version = "2.5.0"
     implementation("androidx.room:room-runtime:$room_version")

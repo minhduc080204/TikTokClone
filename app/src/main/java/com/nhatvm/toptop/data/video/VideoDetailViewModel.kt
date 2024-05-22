@@ -30,7 +30,6 @@ class VideoDetailViewModel @Inject constructor(
         get() = _uiState
 
     init {
-        Log.e("Frank", "VideoDetailViewModel init")
         videoPlayer.repeatMode = REPEAT_MODE_ALL
         videoPlayer.playWhenReady = true
         videoPlayer.prepare()
@@ -46,22 +45,29 @@ class VideoDetailViewModel @Inject constructor(
             is VideoDetailAction.ToggleVideo -> {
                 toggleVideo()
             }
+
         }
     }
 
     private fun loadVideo(videoId: Int) {
         _uiState.value = VideoDetailUiState.Loading
         viewModelScope.launch {
-            delay(100L)
+            delay(10L)
             val video = videoRepository.getVideo()
-            playVideo(videoResourceId = video)
+            startplayVideo(url = video[videoId])
             _uiState.value = VideoDetailUiState.Success
         }
     }
 
-    private fun playVideo(videoResourceId: Int) {
-        val uri = RawResourceDataSource.buildRawResourceUri(videoResourceId)
-        val mediaItem = MediaItem.fromUri(uri)
+    fun pauseVideo() {
+        videoPlayer.pause()
+    }
+    fun playVideo() {
+        videoPlayer.play()
+    }
+
+    private fun startplayVideo(url: String) {
+        val mediaItem = MediaItem.fromUri(url)
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.play()
     }
@@ -69,8 +75,8 @@ class VideoDetailViewModel @Inject constructor(
     private fun toggleVideo() {
         if (videoPlayer.isLoading) {
         } else {
-            if (videoPlayer.isPlaying)
-                videoPlayer.pause() else videoPlayer.play()
+            if (videoPlayer.isPlaying) videoPlayer.pause()
+            else videoPlayer.play()
         }
     }
 
@@ -86,7 +92,6 @@ sealed interface VideoDetailUiState {
     object Default: VideoDetailUiState
     object Loading: VideoDetailUiState
     object Success: VideoDetailUiState
-    data class Error(val msg: String): VideoDetailUiState
 }
 
 sealed class VideoDetailAction {

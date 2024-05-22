@@ -1,17 +1,27 @@
 package com.nhatvm.toptop.data.video.repository
 
-import com.nhatvm.toptop.data.R
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class VideoRepository @Inject constructor() {
+    suspend fun getVideoUrls(): List<String> {
+        val storage = FirebaseStorage.getInstance()
+        val listRef: StorageReference = storage.reference.child("video")
+        return try {
+            val listResult = listRef.listAll().await()
+            val urlList = listResult.items.map { itemRef ->
+                itemRef.downloadUrl.await().toString()
+            }
+            urlList
+        } catch (e: Exception) {
+            println("Error getting list of videos: ${e.message}")
+            emptyList()
+        }
+    }
 
-    private val videos = listOf(
-        R.raw.choingu1,
-        R.raw.choingu2,
-        R.raw.choingu3,
-        R.raw.choingu4,
-    )
+    suspend fun getVideo() = getVideoUrls()
 
-    fun getVideo() = videos.random()
-
+    suspend fun getVideoCount(): Int = getVideoUrls().size
 }

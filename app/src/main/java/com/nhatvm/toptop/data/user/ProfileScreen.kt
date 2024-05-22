@@ -3,6 +3,7 @@ package com.nhatvm.toptop.data.user
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,19 +26,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
+import com.nhatvm.toptop.data.auth.repositories.User
 import com.nhatvm.toptop.data.components.CircleImage
 import com.nhatvm.toptop.data.components.LineColor
 
 @Composable
-fun ProfileScreen(){
+fun ProfileScreen(user: User, onLognOut: () -> Unit, onUpdateProfile: () -> Unit){
     Column (
         modifier = Modifier
-//            .weight(1f)
             .background(Color.White)
             .fillMaxSize()
     ){
-        TopBar()
-        User()
+        TopBar(user.Name, onLognOut)
+        User(user.Username, user.Phone, onUpdateProfile)
         UserVideo()
     }
 }
@@ -52,7 +55,7 @@ fun TextBold(text:String, mordifier:Modifier = Modifier){
 }
 
 @Composable
-fun TopBar(){
+fun TopBar(name: String, onLognOut: () -> Unit){
     Row (
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -64,17 +67,19 @@ fun TopBar(){
             painter = painterResource(id = R.drawable.addaccount_icon),
             contentDescription = "add"
         )
-        TextBold(text = "Minh Đức")
+        TextBold(text = "${name}")
         Image(
-            painter = painterResource(id = R.drawable.menu_icon),
-            contentDescription = "menu"
+            imageVector = Icons.Default.ExitToApp, contentDescription = "Logn Out",
+            modifier = Modifier.clickable {
+                onLognOut()
+            }
         )
     }
     LineColor(color = Color.LightGray)
 }
 
 @Composable
-fun User(){
+fun User(username: String, phone: String, onUpdateProfile: () -> Unit){
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -83,13 +88,13 @@ fun User(){
     ){
         CircleImage(image = R.drawable.test_avtuser, size = 100.dp, border = 2.dp)
         TextBold(
-            text = "@ductihong82",
+            text = "${username}",
             Modifier.padding(10.dp)
         )
         Row {
-            Infor(number = "17", name = "Following")
-            Infor(number = "17", name = "Followers")
-            Infor(number = "17", name = "Likes")
+            Infor(number = "0", name = "Following")
+            Infor(number = "0", name = "Followers")
+            Infor(number = "0", name = "Likes")
         }
         Spacer(modifier = Modifier.size(20.dp))
         Row {
@@ -98,10 +103,13 @@ fun User(){
                 Modifier
                     .border(1.dp, Color.LightGray)
                     .padding(60.dp, 10.dp)
+                    .clickable {
+                        onUpdateProfile()
+                    }
             )
         }
         Spacer(modifier = Modifier.size(20.dp))
-        Text(text = "Tap to add bio", color = Color.Gray)
+        Text(text = "Phone: ${phone}", color = Color.Gray)
     }
 }
 

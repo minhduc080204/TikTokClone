@@ -25,7 +25,8 @@ import androidx.compose.ui.unit.dp
 fun Header(
     modifier: Modifier = Modifier,
     isTabSelectedIndex: Int,
-    onSelectedTab: (isForU: Boolean) -> Unit,
+    onFollowingTab: () -> Unit,
+    onForyouTab: () -> Unit,
 ){
     Row (
         modifier = modifier
@@ -36,14 +37,14 @@ fun Header(
             title = "Following",
             isSelected = isTabSelectedIndex == 0,
             isForU = false,
-            onSelectedTab = onSelectedTab
+            onSelectedTab = onFollowingTab
         )
         Spacer(modifier = Modifier.width(12.dp))
         HeaderItem(
             title = "For You",
             isSelected = isTabSelectedIndex == 1,
             isForU = true,
-            onSelectedTab = onSelectedTab
+            onSelectedTab = onForyouTab
         )
     }
 }
@@ -54,14 +55,14 @@ fun HeaderItem(
     title: String,
     isSelected: Boolean,
     isForU: Boolean,
-    onSelectedTab: (isForU: Boolean) -> Unit
+    onSelectedTab: () -> Unit
 ) {
     val alpha = if (isSelected) 1f else 0.6f
 
     Column(
         modifier = modifier
             .wrapContentSize()
-            .clickable { onSelectedTab(isForU) },
+            .clickable { onSelectedTab() },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

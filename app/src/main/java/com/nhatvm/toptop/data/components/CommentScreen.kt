@@ -32,7 +32,7 @@ fun CommentScreen(videoId: Int, hideCommentScreen: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    hideCommentScreen
+                    hideCommentScreen()
                 }
         ){
         }
@@ -48,7 +48,7 @@ fun CommentScreen(videoId: Int, hideCommentScreen: () -> Unit) {
             ){
                 Spacer(modifier = Modifier)
                 Text(
-                    text = "579 comments",
+                    text = "9 comments",
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier)
@@ -57,7 +57,7 @@ fun CommentScreen(videoId: Int, hideCommentScreen: () -> Unit) {
                 items(10){
                     CommentBar(
                         image = R.drawable.test_avtuser,
-                        username = "ductihong82",
+                        username = "@tesing",
                         comment = "Video with id: $videoId",
                         time = "20h",
                         like = "2000"
