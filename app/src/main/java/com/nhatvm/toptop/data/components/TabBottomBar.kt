@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.nhatvm.toptop.data.R
-import com.nhatvm.toptop.data.ScreenRoutes
+import com.nhatvm.toptop.data.Routes
 
 @Composable
 fun TabBottomBar(
@@ -21,7 +21,7 @@ fun TabBottomBar(
 ){
     BottomAppBar (backgroundColor = Color.Black, contentColor = Color.White){
         BottomNavigationItem(
-            selected = if (selectItem == ScreenRoutes.FORYOU_SCREEN) true else false,
+            selected = if (selectItem == Routes.FORYOU_SCREEN) true else false,
             onClick = onHomeClick,
             icon = { Icon(
                 painter = painterResource(id = R.drawable.home_icon),
@@ -30,7 +30,7 @@ fun TabBottomBar(
             label = { Text(text = "Home") }
         )
         BottomNavigationItem(
-            selected = if (selectItem == ScreenRoutes.DISCOVER_SCREEN) true else false,
+            selected = if (selectItem == Routes.DISCOVER_SCREEN) true else false,
             onClick = onSearchClick,
             icon = { Icon(
                 painter = painterResource(id = R.drawable.search_icon),
@@ -47,7 +47,7 @@ fun TabBottomBar(
             ) },
         )
         BottomNavigationItem(
-            selected = if (selectItem == ScreenRoutes.INBOX_SCREEN) true else false,
+            selected = if (selectItem == Routes.INBOX_SCREEN) true else false,
             onClick = onInboxClick,
             icon = { Icon(
                 painter = painterResource(id = R.drawable.message_icon),
@@ -56,7 +56,7 @@ fun TabBottomBar(
             label = { Text(text = "Inbox") }
         )
         BottomNavigationItem(
-            selected = if (selectItem == ScreenRoutes.ME_SCREEN) true else false,
+            selected = if (selectItem == Routes.ME_SCREEN) true else false,
             onClick = onProfileClick,
             icon = { Icon(
                 painter = painterResource(id = R.drawable.account_icon),

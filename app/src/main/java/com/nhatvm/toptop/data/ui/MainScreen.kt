@@ -2,7 +2,6 @@ package com.nhatvm.toptop.data.ui
 
 import android.Manifest
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -48,9 +47,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
-import com.nhatvm.toptop.data.ScreenRoutes
+import com.nhatvm.toptop.data.Routes
 import com.nhatvm.toptop.data.auth.SignInScreen
 import com.nhatvm.toptop.data.auth.SignUpScreen
 import com.nhatvm.toptop.data.auth.repositories.User
@@ -63,6 +60,7 @@ import com.nhatvm.toptop.data.foryou.ForYouScreen
 import com.nhatvm.toptop.data.user.FollowingScreen
 import com.nhatvm.toptop.data.user.ProfileScreen
 import com.nhatvm.toptop.data.user.UpdateProfileScreen
+import com.nhatvm.toptop.data.video.repository.VideoRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -95,7 +93,7 @@ fun MainScreen() {
         mutableStateOf(-1)
     }
     var selectItem by remember {
-        mutableStateOf(ScreenRoutes.FORYOU_SCREEN)
+        mutableStateOf(Routes.FORYOU_SCREEN)
     }
     val pagerState = rememberPagerState(initialPage = 1)
     val coroutineScope = rememberCoroutineScope()
@@ -114,9 +112,9 @@ fun MainScreen() {
             pagerState.scrollToPage(page = page)
         }
         if (page == 2) {
-            selectItem = ScreenRoutes.ME_SCREEN
+            selectItem = Routes.ME_SCREEN
         }else{
-            selectItem = ScreenRoutes.FORYOU_SCREEN
+            selectItem = Routes.FORYOU_SCREEN
         }
         Log.d("DDDD", page.toString())
     }
@@ -138,14 +136,13 @@ fun MainScreen() {
             sheetState.hide()
         }
     }
-
     LaunchedEffect(key1 = pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             toggleHeader(page)
         }
     }
-    NavHost(navController = navController, startDestination = ScreenRoutes.SIGNIN_SCREEN){
-        composable(ScreenRoutes.SIGNIN_SCREEN){
+    NavHost(navController = navController, startDestination = Routes.FORYOU_SCREEN){
+        composable(Routes.SIGNIN_SCREEN){
             SignInScreen(
                 onSignIn = {email, pass ->
                     if(email.isEmpty() || pass.isEmpty()){
@@ -155,27 +152,17 @@ fun MainScreen() {
                         firebaseAuth.signInWithEmailAndPassword(email.trim(), pass.trim()).addOnCompleteListener{
                             if (it.isSuccessful){
                                 userId = firebaseAuth.currentUser?.uid.toString()
-                                fireDatabase = FirebaseDatabase.getInstance()
-                                val userRef = fireDatabase.getReference("users").child(userId)
-                                userRef.addValueEventListener(object : ValueEventListener {
-                                    override fun onDataChange(snapshot: DataSnapshot) {
-                                        if (snapshot.exists()) {
-                                            val name = snapshot.child("name").getValue(String::class.java)
-                                            val phone = snapshot.child("phone").getValue(String::class.java)
-                                            val username = snapshot.child("username").getValue(String::class.java)
-                                            user = User(userId, name?:"", phone?:"", username?:"")
-                                            navController.navigate(ScreenRoutes.FORYOU_SCREEN){
-                                                popUpTo(ScreenRoutes.SIGNIN_SCREEN){
-                                                    inclusive = true
-                                                }
+                                user = VideoRepository().getUserById(
+                                    userId = userId,
+                                    onSuccess = {
+                                        navController.navigate(Routes.FORYOU_SCREEN){
+                                            popUpTo(Routes.SIGNIN_SCREEN){
+                                                inclusive = true
                                             }
-                                            scrollToPage(1)
-                                        }else{
-                                            Toast.makeText(context, "@@@", Toast.LENGTH_SHORT).show()
                                         }
+                                        scrollToPage(1)
                                     }
-                                    override fun onCancelled(error: DatabaseError) {  }
-                                })
+                                )
                             }else{
                                 Toast.makeText(context, "Sai emai hoặc mật khẩu !", Toast.LENGTH_SHORT).show()
                             }
@@ -183,11 +170,11 @@ fun MainScreen() {
                     }
                 },
                 onSignUp = {
-                    navController.navigate(ScreenRoutes.SIGNUP_SCREEN)
+                    navController.navigate(Routes.SIGNUP_SCREEN)
                 }
             )
         }
-        composable(ScreenRoutes.SIGNUP_SCREEN){
+        composable(Routes.SIGNUP_SCREEN){
             SignUpScreen(
                 onSignUp = {name,phone,username,email, password->
                     if(email.isEmpty() || password.isEmpty() || name.isEmpty() || phone.isEmpty() || username.isEmpty()){
@@ -202,7 +189,7 @@ fun MainScreen() {
                                 val users: DatabaseReference = fireDatabase.getReference("users")
                                 users.child(userId).setValue(user).addOnCompleteListener {
                                     if (it.isSuccessful){
-                                        navController.navigate(ScreenRoutes.SIGNIN_SCREEN)
+                                        navController.navigate(Routes.SIGNIN_SCREEN)
                                         Toast.makeText(context, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
                                     }else{
                                         Toast.makeText(context, it.exception.toString(), Toast.LENGTH_SHORT).show()
@@ -214,10 +201,10 @@ fun MainScreen() {
                         }
                     }
                 },
-                onSignIn = { navController.navigate(ScreenRoutes.SIGNIN_SCREEN) }
+                onSignIn = { navController.navigate(Routes.SIGNIN_SCREEN) }
             )
         }
-        composable(ScreenRoutes.FORYOU_SCREEN){
+        composable(Routes.FORYOU_SCREEN){
             ModalBottomSheetLayout(sheetState = sheetState, sheetContent = {
                 if (currentVideoId != -1) {
                     sheetContents()
@@ -263,11 +250,16 @@ fun MainScreen() {
                             HorizontalPager(pageCount = 3, state = pagerState) {page ->
                                 when(page){
                                     1 -> ForYouScreen(
+                                        user = User("aa", "ductihong", "22222", "@duc777"),
                                         onShowComment = {videoId ->
                                             sheetContents = {
-                                                CommentScreen(videoId = currentVideoId) {
-                                                    hidesheetState()
-                                                }
+                                                CommentScreen(
+                                                    videoId = currentVideoId,
+                                                    hideCommentScreen = hidesheetState,
+                                                    onComment = {content ->
+
+                                                    }
+                                                )
                                             }
                                             showsheetState(videoId)
                                         },
@@ -283,14 +275,14 @@ fun MainScreen() {
                                     2 -> ProfileScreen(
                                         user = user,
                                         onLognOut = {
-                                            navController.navigate(ScreenRoutes.SIGNIN_SCREEN){
-                                                popUpTo(ScreenRoutes.FORYOU_SCREEN){
+                                            navController.navigate(Routes.SIGNIN_SCREEN){
+                                                popUpTo(Routes.FORYOU_SCREEN){
                                                     inclusive = true
                                                 }
                                             }
                                         },
                                         onUpdateProfile = {
-                                            navController.navigate(ScreenRoutes.UPDATEPROFILE_SCREEN)
+                                            navController.navigate(Routes.UPDATEPROFILE_SCREEN)
                                         }
                                     )
                                     else -> FollowingScreen()
@@ -318,11 +310,11 @@ fun MainScreen() {
                 }
             }
         }
-        composable(ScreenRoutes.UPDATEPROFILE_SCREEN){
+        composable(Routes.UPDATEPROFILE_SCREEN){
             UpdateProfileScreen(
                 user = user,
                 onBack = {
-                    navController.navigate(ScreenRoutes.FORYOU_SCREEN)
+                    navController.navigate(Routes.FORYOU_SCREEN)
                     coroutineScope.launch {
                         delay(10L)
                         scrollToPage(2)
@@ -341,7 +333,7 @@ fun MainScreen() {
                             val userRef: DatabaseReference = fireDatabase.getReference("users").child(userId)
                             userRef.setValue(user).addOnCompleteListener{it ->
                                 if(it.isSuccessful){
-                                    navController.navigate(ScreenRoutes.FORYOU_SCREEN)
+                                    navController.navigate(Routes.FORYOU_SCREEN)
                                     coroutineScope.launch {
                                         delay(10L)
                                         scrollToPage(2)

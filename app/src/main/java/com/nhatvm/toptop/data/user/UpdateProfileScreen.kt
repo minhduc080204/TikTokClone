@@ -49,7 +49,6 @@ fun UpdateProfileScreen(user: User, onBack:() -> Unit, onUpdate:(String, String,
     var username by remember {
         mutableStateOf(user.Username)
     }
-    val nameFocusRequester = remember { FocusRequester() }
     val userrnameFocusRequester = remember { FocusRequester() }
     val phoneFocusRequester = remember { FocusRequester() }
     Column (

@@ -24,19 +24,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
+import com.nhatvm.toptop.data.video.repository.Video
 
 @Composable
 fun VideoInterface(
-    username: String,
-    content: String,
-    hastag: List<String>,
-    songname: String,
+    videoinfor: Video,
     onAvatarClick:() ->Unit,
     onLikeClick:() ->Unit,
     onCommentClick:() ->Unit,
@@ -53,19 +50,19 @@ fun VideoInterface(
             modifier = Modifier.weight(1f)
         ){
             Row (verticalAlignment = Alignment.CenterVertically){
-                TextBold(username = username)
+                TextBold(username = videoinfor.usernameVideo)
                 Image(
                     painter = painterResource(id = R.drawable.bluetick_icon),
                     contentDescription = "blue tick"
                 )
             }
-            TextWhite(content)
-            TextBold(hastag.joinToString(" "))
+            TextWhite(videoinfor.contentVideo)
+            TextBold(videoinfor.tagsVideo.joinToString(" "))
             Row (
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Image(painter = painterResource(id =R.drawable.music_icon), contentDescription = "music")
-                TextWhite(songname, 7.dp)
+                TextWhite(videoinfor.songVideo, 7.dp)
             }
         }
         Column (
@@ -80,20 +77,20 @@ fun VideoInterface(
             Spacer(modifier = Modifier.size(30.dp))
             ActionVideoInterface(
                 painter = painterResource(id = R.drawable.heart_icon),
-                contentDescription = "heart",
-                number = "174M",
+                contentDescription = "$videoinfor.",
+                number = "${videoinfor.likeVideo}",
                 onClick = {onLikeClick()}
             )
             ActionVideoInterface(
                 painter = painterResource(id = R.drawable.comment_icon),
                 contentDescription = "comment",
-                number = "82K",
+                number = "${videoinfor.commentVideo.size}",
                 onClick = {onCommentClick()}
             )
             ActionVideoInterface(
                 painter = painterResource(id = R.drawable.share_icon),
                 contentDescription = "share",
-                number = "400",
+                number = "${videoinfor.shareVideo}",
                 onClick = {onShareClick()}
             )
             AudioTrackView(trackImg = R.drawable.test_avtuser)
@@ -142,7 +139,6 @@ fun AudioTrackView(
     trackImg: Int = R.drawable.disc_icon
 ){
     val infiniteTransition = rememberInfiniteTransition()
-
     val rotate by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,

@@ -12,9 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,11 +31,13 @@ import androidx.media3.common.util.UnstableApi
 import com.nhatvm.toptop.data.R
 import com.nhatvm.toptop.data.components.VideoInterface
 import com.nhatvm.toptop.data.designsystem.TopTopVideoPlayer
+import com.nhatvm.toptop.data.video.repository.Video
 
 @UnstableApi
 @Composable
 fun VideoDetailScreen(
     videoId: Int,
+    videoinfor: Video,
     viewModel: VideoDetailViewModel = hiltViewModel(),
     onShowComment: (Int) -> Unit,
     onShowShare: (Int) -> Unit,
@@ -60,7 +59,10 @@ fun VideoDetailScreen(
         }
     }
 
-    VideoDetailScreen(uiState = uiState.value, player = viewModel.videoPlayer,
+    VideoDetailScreen(
+        videoinfor = videoinfor,
+        uiState = uiState.value,
+        player = viewModel.videoPlayer,
         onShowComment = {onShowComment(videoId)},
         onShowShare = { onShowShare(videoId)}
     ) { aciton ->
@@ -72,6 +74,7 @@ fun VideoDetailScreen(
 @Composable
 fun VideoDetailScreen(
     uiState: VideoDetailUiState,
+    videoinfor: Video,
     player: Player,
     onShowComment: () -> Unit,
     onShowShare: () -> Unit,
@@ -107,6 +110,7 @@ fun VideoDetailScreen(
 
         is VideoDetailUiState.Success -> {
             VideoDetailScreen(
+                videoinfor = videoinfor,
                 player = player,
                 handleAction = handleAction,
                 onShowComment = onShowComment,
@@ -126,6 +130,7 @@ fun VideoDetailScreen(
 @Composable
 fun VideoDetailScreen(
     player: Player,
+    videoinfor: Video,
     handleAction: (VideoDetailAction) -> Unit,
     onShowComment: () -> Unit,
     onShowShare: () -> Unit,
@@ -148,10 +153,7 @@ fun VideoDetailScreen(
         })
     }
     VideoInterface(
-        username = "@admin123",
-        content = "Testing video loading",
-        hastag = listOf("#calisthenic", "#top1vku"),
-        songname = "Avicii - Waiting for love",
+        videoinfor = videoinfor,
         onAvatarClick = {},
         onLikeClick = {},
         onCommentClick = onShowComment,

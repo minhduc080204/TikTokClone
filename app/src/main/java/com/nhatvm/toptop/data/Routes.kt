@@ -1,6 +1,6 @@
 package com.nhatvm.toptop.data
 
-object ScreenRoutes {
+object Routes {
     const val FORYOU_SCREEN ="FORYOU_SCREEN"
     const val DISCOVER_SCREEN ="DISCOVER_SCREEN"
     const val INBOX_SCREEN ="INBOX_SCREEN"

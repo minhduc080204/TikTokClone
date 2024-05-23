@@ -53,8 +53,10 @@ class VideoDetailViewModel @Inject constructor(
         _uiState.value = VideoDetailUiState.Loading
         viewModelScope.launch {
             delay(10L)
-            val video = videoRepository.getVideo()
-            startplayVideo(url = video[videoId])
+            Log.d("VIDEOID", "$videoId")
+            var videoUrl = videoRepository.getVideoObject()[videoId].urlVideo
+            startplayVideo(url = videoUrl)
+
             _uiState.value = VideoDetailUiState.Success
         }
     }

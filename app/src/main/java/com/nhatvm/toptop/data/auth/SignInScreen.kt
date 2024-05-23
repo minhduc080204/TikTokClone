@@ -57,10 +57,10 @@ fun SignInScreen(
         )
 
         Text(
-            text = "SIGN UP",
-            fontSize = 40.sp,
+            text = "Đăng nhập TopTop",
+            fontSize = 35.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Green,
+            color = Color.White,
             modifier = Modifier.padding(bottom = 30.dp)
         )
 
