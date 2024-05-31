@@ -68,15 +68,19 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen() {
-    lateinit var user:User
+    lateinit var USERCURRENT:User
     lateinit var userId:String
     lateinit var firebaseAuth: FirebaseAuth
     lateinit var fireDatabase: FirebaseDatabase
+    val pagerState = rememberPagerState(initialPage = 1)
+    val coroutineScope = rememberCoroutineScope()
     val fileRepository = FileRepository()
     val videoPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { videoUri ->
-                fileRepository.handleVideoUri(videoUri)
+                coroutineScope.launch {
+                    fileRepository.handleVideoUri(videoUri)
+                }
             }
         }
     }
@@ -95,8 +99,6 @@ fun MainScreen() {
     var selectItem by remember {
         mutableStateOf(Routes.FORYOU_SCREEN)
     }
-    val pagerState = rememberPagerState(initialPage = 1)
-    val coroutineScope = rememberCoroutineScope()
     var isShowHeader by remember {
         mutableStateOf(true)
     }
@@ -141,7 +143,7 @@ fun MainScreen() {
             toggleHeader(page)
         }
     }
-    NavHost(navController = navController, startDestination = Routes.FORYOU_SCREEN){
+    NavHost(navController = navController, startDestination = Routes.SIGNIN_SCREEN){
         composable(Routes.SIGNIN_SCREEN){
             SignInScreen(
                 onSignIn = {email, pass ->
@@ -152,17 +154,19 @@ fun MainScreen() {
                         firebaseAuth.signInWithEmailAndPassword(email.trim(), pass.trim()).addOnCompleteListener{
                             if (it.isSuccessful){
                                 userId = firebaseAuth.currentUser?.uid.toString()
-                                user = VideoRepository().getUserById(
-                                    userId = userId,
-                                    onSuccess = {
-                                        navController.navigate(Routes.FORYOU_SCREEN){
-                                            popUpTo(Routes.SIGNIN_SCREEN){
-                                                inclusive = true
+                                coroutineScope.launch {
+                                    USERCURRENT = VideoRepository().getUserById(
+                                        userId = userId,
+                                        onSuccess = {
+                                            navController.navigate(Routes.FORYOU_SCREEN){
+                                                popUpTo(Routes.SIGNIN_SCREEN){
+                                                    inclusive = true
+                                                }
                                             }
+                                            scrollToPage(1)
                                         }
-                                        scrollToPage(1)
-                                    }
-                                )
+                                    )
+                                }
                             }else{
                                 Toast.makeText(context, "Sai emai hoặc mật khẩu !", Toast.LENGTH_SHORT).show()
                             }
@@ -184,10 +188,10 @@ fun MainScreen() {
                         firebaseAuth.createUserWithEmailAndPassword(email.trim(), password.trim()).addOnCompleteListener{
                             if (it.isSuccessful){
                                 userId = firebaseAuth.currentUser?.uid.toString()
-                                user = User(userId, name, phone, "@$username")
+                                 val usersignup = User(userId, name, phone, "@$username")
                                 fireDatabase = FirebaseDatabase.getInstance()
                                 val users: DatabaseReference = fireDatabase.getReference("users")
-                                users.child(userId).setValue(user).addOnCompleteListener {
+                                users.child(userId).setValue(usersignup).addOnCompleteListener {
                                     if (it.isSuccessful){
                                         navController.navigate(Routes.SIGNIN_SCREEN)
                                         Toast.makeText(context, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
@@ -250,12 +254,10 @@ fun MainScreen() {
                             HorizontalPager(pageCount = 3, state = pagerState) {page ->
                                 when(page){
                                     1 -> ForYouScreen(
-                                        user = User("aa", "ductihong", "22222", "@duc777"),
                                         onShowComment = {videoId ->
                                             sheetContents = {
                                                 CommentScreen(
                                                     videoId = currentVideoId,
-                                                    hideCommentScreen = hidesheetState,
                                                     onComment = {content ->
 
                                                     }
@@ -273,7 +275,7 @@ fun MainScreen() {
                                         },
                                     )
                                     2 -> ProfileScreen(
-                                        user = user,
+                                        user = USERCURRENT,
                                         onLognOut = {
                                             navController.navigate(Routes.SIGNIN_SCREEN){
                                                 popUpTo(Routes.FORYOU_SCREEN){
@@ -312,7 +314,7 @@ fun MainScreen() {
         }
         composable(Routes.UPDATEPROFILE_SCREEN){
             UpdateProfileScreen(
-                user = user,
+                user = USERCURRENT,
                 onBack = {
                     navController.navigate(Routes.FORYOU_SCREEN)
                     coroutineScope.launch {
@@ -328,10 +330,10 @@ fun MainScreen() {
                         if (phone.toIntOrNull() == null){
                             Toast.makeText(context, "Hãy nhập đúng số điện thoại", Toast.LENGTH_SHORT).show()
                         }else{
-                            user = User(userId, name, phone, username)
+                            USERCURRENT = User(userId, name, phone, username)
                             fireDatabase = FirebaseDatabase.getInstance()
                             val userRef: DatabaseReference = fireDatabase.getReference("users").child(userId)
-                            userRef.setValue(user).addOnCompleteListener{it ->
+                            userRef.setValue(USERCURRENT).addOnCompleteListener{it ->
                                 if(it.isSuccessful){
                                     navController.navigate(Routes.FORYOU_SCREEN)
                                     coroutineScope.launch {

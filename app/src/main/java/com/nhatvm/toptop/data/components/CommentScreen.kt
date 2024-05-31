@@ -34,11 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
 import com.nhatvm.toptop.data.video.repository.Comment
-import com.nhatvm.toptop.data.video.repository.Video
 import com.nhatvm.toptop.data.video.repository.VideoRepository
 
 @Composable
-fun CommentScreen(videoId: Int, hideCommentScreen: () -> Unit, onComment: (String) -> Unit) {
+fun CommentScreen(videoId: Int, onComment: (String) -> Unit) {
     var comments by remember {
         mutableStateOf<List<Comment>>(listOf())
     }
@@ -46,111 +45,82 @@ fun CommentScreen(videoId: Int, hideCommentScreen: () -> Unit, onComment: (Strin
         comments = VideoRepository().getVideoObject()[videoId].commentVideo
     }
 
-    Column (modifier = Modifier
-        .fillMaxWidth()
-        .height(500.dp)
+    Box (
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(450.dp)
     ){
-        Column (
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    hideCommentScreen()
-                }
+                .background(Color(245, 243, 248))
         ){
-        }
-        Box (
-        ){
-            Column(
+            Row (
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .background(Color(245, 243, 248))
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(10.dp)
             ){
-                Row (
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                ){
-                    Spacer(modifier = Modifier)
-                    Text(
-                        text = "${comments.size} comments",
-                        fontWeight = FontWeight.SemiBold
+                Spacer(modifier = Modifier)
+                Text(
+                    text = "${comments.size} comments",
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier)
+            }
+            LazyColumn{
+                items(comments){ comment->
+                    CommentBar(
+                        image = R.drawable.test_avtuser,
+                        username = "${comment.userComment.Name}",
+                        comment = "${comment.comment}",
+                        time = "${comment.timeComment}",
+                        like = "${comment.likeComment}"
                     )
-                    Spacer(modifier = Modifier)
-                }
-                LazyColumn{
-                    items(comments){ comment->
-                        CommentBar(
-                            image = R.drawable.test_avtuser,
-                            username = "${comment.userComment.Name}",
-                            comment = "${comment.comment}",
-                            time = "${comment.timeComment}",
-                            like = "${comment.likeComment}"
-                        )
-                    }
                 }
             }
-            CommentInput(modifier = Modifier.align(Alignment.BottomEnd), onComment)
         }
+        CommentInput(modifier = Modifier.align(Alignment.BottomEnd), onComment)
     }
 }
 
 @Composable
 fun CommentBar(image: Int, username: String, comment: String, time: String, like: String){
     Row (
-        Modifier
+        modifier = Modifier
             .padding(15.dp, 0.dp)
             .fillMaxWidth()
     ){
-        CircleImage(image = image, size = 40.dp)
+        CircleImage(image = image, size = 40.dp, modifier = Modifier.padding(top = 10.dp))
         Spacer(modifier = Modifier.size(10.dp))
-        Row (
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-        ){
-            Column (
-
+        Column (modifier = Modifier.fillMaxWidth()){
+            Text(
+                text = username,
+                fontSize = 15.sp,
+                color = Color.Gray
+            )
+            Text(
+                text = comment, fontSize = 16.sp
+            )
+            Row (
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
             ){
                 Text(
-                    text = username,
-                    fontSize = 15.sp,
-                    color = Color.Gray
+                    text = time, fontSize = 15.sp, color = Color.Gray,
                 )
                 Row (
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier.padding(0.dp, 3.dp)
+                    verticalAlignment = Alignment.CenterVertically,
                 ){
-                    Text(
-                        text = comment, fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        text = time, fontSize = 15.sp, color = Color.Gray
-                    )
-                }
-                Row (
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    Text(
-                        text = "View replies (4)",
-                        fontSize = 15.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.SemiBold
-                    )
                     Image(
-                        painter = painterResource(id = R.drawable.down_icon),
+                        painter = painterResource(id = R.drawable.likecomment_icon),
                         contentDescription = ""
                     )
+                    Spacer(modifier = Modifier.size(2.dp))
+                    Text(text = like, fontSize = 18.sp, color = Color.Gray)
                 }
-            }
-            Column (
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Image(
-                    painter = painterResource(id = R.drawable.likecomment_icon),
-                    contentDescription = ""
-                )
-                Text(text = like, fontSize = 18.sp, color = Color.Gray)
             }
         }
     }

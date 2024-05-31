@@ -1,17 +1,11 @@
 package com.nhatvm.toptop.data.video.repository
 
-import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.nhatvm.toptop.data.Routes
 import com.nhatvm.toptop.data.auth.repositories.User
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -31,23 +25,18 @@ class VideoRepository @Inject constructor() {
         }
     }
 
-    fun getUserById(userId: String, onSuccess:() -> Unit): User{
-        var user = User("@@", "@@", "@@", "@@")
+    suspend fun getUserById(userId: String, onSuccess:() -> Unit): User{
+        var user = User("@@", "ADMIN", "0359100", "@admin")
         val fireDatabase = FirebaseDatabase.getInstance()
         val userRef = fireDatabase.getReference("users").child(userId)
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val name = snapshot.child("name").getValue(String::class.java)
-                    val phone = snapshot.child("phone").getValue(String::class.java)
-                    val username = snapshot.child("username").getValue(String::class.java)
-                    user = User(userId, name?:"", phone?:"", username?:"")
-                    onSuccess()
-                }
-            }
-            override fun onCancelled(error: DatabaseError) {
-            }
-        })
+        val snapshot = userRef.get().await()
+        if (snapshot.exists()) {
+            val name = snapshot.child("name").getValue(String::class.java)
+            val phone = snapshot.child("phone").getValue(String::class.java)
+            val username = snapshot.child("username").getValue(String::class.java)
+            user = User(userId, name?:"", phone?:"", username?:"")
+            onSuccess()
+        }
         return user
     }
     suspend fun getVideoObject(): MutableList<Video> {
