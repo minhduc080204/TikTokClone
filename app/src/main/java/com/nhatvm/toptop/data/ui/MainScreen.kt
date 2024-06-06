@@ -2,7 +2,9 @@ package com.nhatvm.toptop.data.ui
 
 import android.Manifest
 import android.app.Activity
+import android.app.Application
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,22 +33,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.media3.common.util.Log
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.nhatvm.toptop.data.Routes
 import com.nhatvm.toptop.data.auth.SignInScreen
 import com.nhatvm.toptop.data.auth.SignUpScreen
@@ -55,17 +56,25 @@ import com.nhatvm.toptop.data.components.CommentScreen
 import com.nhatvm.toptop.data.components.Header
 import com.nhatvm.toptop.data.components.ShareBar
 import com.nhatvm.toptop.data.components.TabBottomBar
-import com.nhatvm.toptop.data.file.FileRepository
+import com.nhatvm.toptop.data.file.FileViewModel
+import com.nhatvm.toptop.data.file.handleVideoUri
+import com.nhatvm.toptop.data.file.handleVideoUri1
+import com.nhatvm.toptop.data.file.openGalleryForVideo
 import com.nhatvm.toptop.data.foryou.ForYouScreen
+import com.nhatvm.toptop.data.inbox.InboxScreen
+import com.nhatvm.toptop.data.uploadvideo.UploadVideoScreen
 import com.nhatvm.toptop.data.user.FollowingScreen
 import com.nhatvm.toptop.data.user.ProfileScreen
 import com.nhatvm.toptop.data.user.UpdateProfileScreen
+import com.nhatvm.toptop.data.video.repository.Comment
+import com.nhatvm.toptop.data.video.repository.Video
 import com.nhatvm.toptop.data.video.repository.VideoRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @UnstableApi
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class,ExperimentalComposeUiApi::class)
 @Composable
 fun MainScreen() {
     lateinit var USERCURRENT:User
@@ -74,28 +83,22 @@ fun MainScreen() {
     lateinit var fireDatabase: FirebaseDatabase
     val pagerState = rememberPagerState(initialPage = 1)
     val coroutineScope = rememberCoroutineScope()
-    val fileRepository = FileRepository()
+    val navController = rememberNavController()
     val videoPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { videoUri ->
-                coroutineScope.launch {
-                    fileRepository.handleVideoUri(videoUri)
-                }
+                navController.navigate("UPLOAD_SCREEN/${Uri.encode(videoUri.toString())}")
             }
         }
     }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
-            fileRepository.openGalleryForVideo(videoPickerLauncher)
+            openGalleryForVideo(videoPickerLauncher)
         } else {
 
         }
     }
     val context = LocalContext.current
-    val navController = rememberNavController()
-    var currentVideoId by remember {
-        mutableStateOf(-1)
-    }
     var selectItem by remember {
         mutableStateOf(Routes.FORYOU_SCREEN)
     }
@@ -111,33 +114,16 @@ fun MainScreen() {
     }
     val scrollToPage: (Int) -> Unit = { page ->
         coroutineScope.launch {
+            delay(10L)
             pagerState.scrollToPage(page = page)
         }
-        if (page == 2) {
-            selectItem = Routes.ME_SCREEN
-        }else{
-            selectItem = Routes.FORYOU_SCREEN
+        when(page){
+            2 -> selectItem = Routes.ME_SCREEN
+            3 -> selectItem = Routes.INBOX_SCREEN
+            else -> selectItem = Routes.FORYOU_SCREEN
         }
-        Log.d("DDDD", page.toString())
     }
-    val content: @Composable (() -> Unit) = {  }
-    var sheetContents by remember {
-        mutableStateOf(content)
-    }
-    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
 
-    val showsheetState: (Int) -> Unit = { videoId ->
-        currentVideoId = videoId
-        coroutineScope.launch {
-            sheetState.show()
-        }
-    }
-    val hidesheetState: () -> Unit = {
-        currentVideoId = -1
-        coroutineScope.launch {
-            sheetState.hide()
-        }
-    }
     LaunchedEffect(key1 = pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             toggleHeader(page)
@@ -188,7 +174,7 @@ fun MainScreen() {
                         firebaseAuth.createUserWithEmailAndPassword(email.trim(), password.trim()).addOnCompleteListener{
                             if (it.isSuccessful){
                                 userId = firebaseAuth.currentUser?.uid.toString()
-                                 val usersignup = User(userId, name, phone, "@$username")
+                                 val usersignup = User(userId, name, phone, "@$username", "")
                                 fireDatabase = FirebaseDatabase.getInstance()
                                 val users: DatabaseReference = fireDatabase.getReference("users")
                                 users.child(userId).setValue(usersignup).addOnCompleteListener {
@@ -209,103 +195,79 @@ fun MainScreen() {
             )
         }
         composable(Routes.FORYOU_SCREEN){
-            ModalBottomSheetLayout(sheetState = sheetState, sheetContent = {
-                if (currentVideoId != -1) {
-                    sheetContents()
-                } else {
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-            }) {
-                Scaffold (
-                    bottomBar = { TabBottomBar(
-                        selectItem,
-                        onHomeClick = {
-                            scrollToPage(1)
-                        },
-                        onSearchClick = {
+            Scaffold (
+                bottomBar = { TabBottomBar(
+                    selectItem,
+                    onHomeClick = {
+                        scrollToPage(1)
+                    },
+                    onSearchClick = {
 
-                        },
-                        onUploadClick = {
-                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                                permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                            } else {
-                                fileRepository.openGalleryForVideo(videoPickerLauncher)
-                            }
-                        },
-                        onInboxClick = {
-
-                        },
-                        onProfileClick = {
-                            scrollToPage(2)
-                        },
-                    ) }
-                ){paddingValues ->
-                    Box(
+                    },
+                    onUploadClick = {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        } else {
+                            openGalleryForVideo(videoPickerLauncher)
+                        }
+                    },
+                    onInboxClick = {
+                        scrollToPage(3)
+                    },
+                    onProfileClick = {
+                        scrollToPage(2)
+                    },
+                ) }
+            ){paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ){
+                    Column (
+                        verticalArrangement = Arrangement.Center,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(paddingValues)
+                            .background(Color.Black)
                     ){
-                        Column (
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black)
-                        ){
-                            HorizontalPager(pageCount = 3, state = pagerState) {page ->
-                                when(page){
-                                    1 -> ForYouScreen(
-                                        onShowComment = {videoId ->
-                                            sheetContents = {
-                                                CommentScreen(
-                                                    videoId = currentVideoId,
-                                                    onComment = {content ->
-
-                                                    }
-                                                )
+                        HorizontalPager(pageCount = 4, state = pagerState) {page ->
+                            when(page){
+                                1 -> ForYouScreen(
+                                    USERCURRENT = USERCURRENT,
+                                    context = context,
+                                )
+                                2 -> ProfileScreen(
+                                    user = USERCURRENT,
+                                    onLognOut = {
+                                        navController.navigate(Routes.SIGNIN_SCREEN){
+                                            popUpTo(Routes.FORYOU_SCREEN){
+                                                inclusive = true
                                             }
-                                            showsheetState(videoId)
-                                        },
-                                        onShowShare = {videoId ->
-                                            sheetContents = {
-                                                ShareBar(videoId = currentVideoId){
-                                                    hidesheetState()
-                                                }
-                                            }
-                                            showsheetState(videoId)
-                                        },
-                                    )
-                                    2 -> ProfileScreen(
-                                        user = USERCURRENT,
-                                        onLognOut = {
-                                            navController.navigate(Routes.SIGNIN_SCREEN){
-                                                popUpTo(Routes.FORYOU_SCREEN){
-                                                    inclusive = true
-                                                }
-                                            }
-                                        },
-                                        onUpdateProfile = {
-                                            navController.navigate(Routes.UPDATEPROFILE_SCREEN)
                                         }
-                                    )
-                                    else -> FollowingScreen()
-                                }
+                                    },
+                                    onUpdateProfile = {
+                                        navController.navigate(Routes.UPDATEPROFILE_SCREEN)
+                                    }
+                                )
+                                3 -> InboxScreen()
+                                else -> FollowingScreen()
                             }
                         }
-                        Box(
-                            modifier = Modifier.padding(top = 40.dp),
-                        ){
-                            if (isShowHeader){
-                                AnimatedVisibility(visible = isShowHeader) {
-                                    Header(
-                                        isTabSelectedIndex = pagerState.currentPage,
-                                        onFollowingTab = {
-                                            scrollToPage(0)
-                                        },
-                                        onForyouTab = {
-                                            scrollToPage(1)
-                                        }
-                                    )
-                                }
+                    }
+                    Box(
+                        modifier = Modifier.padding(top = 40.dp),
+                    ){
+                        if (isShowHeader){
+                            AnimatedVisibility(visible = isShowHeader) {
+                                Header(
+                                    isTabSelectedIndex = pagerState.currentPage,
+                                    onFollowingTab = {
+                                        scrollToPage(0)
+                                    },
+                                    onForyouTab = {
+                                        scrollToPage(1)
+                                    }
+                                )
                             }
                         }
                     }
@@ -330,23 +292,57 @@ fun MainScreen() {
                         if (phone.toIntOrNull() == null){
                             Toast.makeText(context, "Hãy nhập đúng số điện thoại", Toast.LENGTH_SHORT).show()
                         }else{
-                            USERCURRENT = User(userId, name, phone, username)
-                            fireDatabase = FirebaseDatabase.getInstance()
-                            val userRef: DatabaseReference = fireDatabase.getReference("users").child(userId)
-                            userRef.setValue(USERCURRENT).addOnCompleteListener{it ->
-                                if(it.isSuccessful){
-                                    navController.navigate(Routes.FORYOU_SCREEN)
-                                    coroutineScope.launch {
-                                        delay(10L)
-                                        scrollToPage(2)
+                            val newUser = User(userId, name, phone, username, USERCURRENT.Image)
+                            if (!newUser.equals(USERCURRENT)){
+                                USERCURRENT = newUser
+                                fireDatabase = FirebaseDatabase.getInstance()
+                                val userRef: DatabaseReference = fireDatabase.getReference("users").child(userId)
+                                userRef.setValue(USERCURRENT).addOnCompleteListener{it ->
+                                    if(it.isSuccessful){
+                                        navController.navigate(Routes.FORYOU_SCREEN)
+                                        coroutineScope.launch {
+                                            delay(10L)
+                                            scrollToPage(2)
+                                        }
+                                        Toast.makeText(context, "Cập nhật thành công", Toast.LENGTH_SHORT).show()
+                                    }else{
+                                        Toast.makeText(context, it.exception.toString(), Toast.LENGTH_SHORT).show()
                                     }
-                                    Toast.makeText(context, "Cập nhật thành công", Toast.LENGTH_SHORT).show()
-                                }else{
-                                    Toast.makeText(context, it.exception.toString(), Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
                     }
+                }
+            )
+        }
+        composable(Routes.UPLOAD_SCREEN){
+            val videoUri = Uri.parse(it.arguments?.getString("videoUri"))
+            var isLoading by remember { mutableStateOf(false) }
+            UploadVideoScreen(
+                isLoading = isLoading,
+                videoUri = videoUri,
+                onUpload = {content, listHashtag, song ->
+                    coroutineScope.launch {
+                        isLoading = true
+                        val urlVideo = handleVideoUri1(videoUri)?: ""
+                        VideoRepository().uploadVideo(
+                            idVideo = USERCURRENT.id,
+                            contentVideo = content,
+                            songVideo = song,
+                            tagsVideo = listHashtag,
+                            urlVideo = urlVideo,
+                        )
+                        delay(10L)
+                        navController.navigate(Routes.FORYOU_SCREEN)
+                        isLoading = false
+                        Toast.makeText(context, "Đăng tải video thành công", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onBack = {
+                    navController.navigate(Routes.FORYOU_SCREEN)
+                },
+                onChose = {
+                    openGalleryForVideo(videoPickerLauncher)
                 }
             )
         }

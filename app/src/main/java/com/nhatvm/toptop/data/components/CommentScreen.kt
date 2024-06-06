@@ -33,18 +33,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
+import com.nhatvm.toptop.data.auth.repositories.User
 import com.nhatvm.toptop.data.video.repository.Comment
 import com.nhatvm.toptop.data.video.repository.VideoRepository
+import java.util.concurrent.TimeUnit
 
 @Composable
-fun CommentScreen(videoId: Int, onComment: (String) -> Unit) {
-    var comments by remember {
-        mutableStateOf<List<Comment>>(listOf())
-    }
-    LaunchedEffect(Unit){
-        comments = VideoRepository().getVideoObject()[videoId].commentVideo
-    }
-
+fun CommentScreen(usrer: User, comments: List<Comment>, onComment: (String) -> Unit) {
     Box (
         modifier = Modifier
             .fillMaxWidth()
@@ -71,27 +66,31 @@ fun CommentScreen(videoId: Int, onComment: (String) -> Unit) {
             LazyColumn{
                 items(comments){ comment->
                     CommentBar(
-                        image = R.drawable.test_avtuser,
+                        image = "${comment.userComment.Image}",
                         username = "${comment.userComment.Name}",
                         comment = "${comment.comment}",
-                        time = "${comment.timeComment}",
+                        time = "${getTime(comment.timeComment)}",
                         like = "${comment.likeComment}"
                     )
                 }
+                items(1){
+                    Spacer(modifier = Modifier.size(60.dp))
+                }
             }
         }
-        CommentInput(modifier = Modifier.align(Alignment.BottomEnd), onComment)
+        CommentInput(usrer.Image, modifier = Modifier.align(Alignment.BottomEnd), onComment)
+
     }
 }
 
 @Composable
-fun CommentBar(image: Int, username: String, comment: String, time: String, like: String){
+fun CommentBar(image: String, username: String, comment: String, time: String, like: String){
     Row (
         modifier = Modifier
             .padding(15.dp, 0.dp)
             .fillMaxWidth()
     ){
-        CircleImage(image = image, size = 40.dp, modifier = Modifier.padding(top = 10.dp))
+        CircleImage(imageUrl = image, size = 40.dp, modifier = Modifier.padding(top = 10.dp))
         Spacer(modifier = Modifier.size(10.dp))
         Column (modifier = Modifier.fillMaxWidth()){
             Text(
@@ -128,7 +127,7 @@ fun CommentBar(image: Int, username: String, comment: String, time: String, like
 }
 
 @Composable
-fun CommentInput(modifier: Modifier = Modifier, onComment:(String) -> Unit) {
+fun CommentInput(image: String, modifier: Modifier = Modifier, onComment:(String) -> Unit) {
     var input by remember {
         mutableStateOf("")
     }
@@ -140,7 +139,7 @@ fun CommentInput(modifier: Modifier = Modifier, onComment:(String) -> Unit) {
             .background(Color.White)
             .padding(10.dp)
     ){
-        CircleImage(image = R.drawable.test_avtuser, size = 40.dp)
+        CircleImage(imageUrl = image, size = 40.dp)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -164,8 +163,25 @@ fun CommentInput(modifier: Modifier = Modifier, onComment:(String) -> Unit) {
                     .size(40.dp)
                     .clickable {
                         onComment(input)
+                        input = ""
                     }
             )
         }
+    }
+}
+fun getTime(timeComment: Long): String {
+    val currentTime = System.currentTimeMillis()
+    val elapsedTime = currentTime - timeComment
+
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime)
+    val hours = TimeUnit.MILLISECONDS.toHours(elapsedTime)
+    val days = TimeUnit.MILLISECONDS.toDays(elapsedTime)
+
+    return when {
+        seconds < 60 -> "$seconds seconds"
+        minutes < 60 -> "$minutes minutes"
+        hours < 24 -> "$hours hours"
+        else -> "$days days "
     }
 }

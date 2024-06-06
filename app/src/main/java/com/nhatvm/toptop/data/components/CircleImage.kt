@@ -11,12 +11,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 
 
 @Composable
-fun CircleImage(image: Int, size:Dp, border:Dp = 0.dp, color: Color = Color.White, modifier:Modifier = Modifier){
+fun CircleImage(imageUrl: String, size:Dp, border:Dp = 0.dp, color: Color = Color.White, modifier:Modifier = Modifier){
     Image(
-        painter = painterResource(id = image),
+        painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = "image",
         modifier = modifier
             .size(size)

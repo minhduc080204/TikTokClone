@@ -10,4 +10,5 @@ data class User(
     var Name: String,
     var Phone: String,
     var Username: String,
+    var Image: String,
 )

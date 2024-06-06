@@ -9,9 +9,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,6 +26,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -82,30 +86,7 @@ fun VideoDetailScreen(
 ) {
     when (uiState) {
         is VideoDetailUiState.Loading -> {
-            val infiniteTransition = rememberInfiniteTransition()
-
-            val rotate by infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = 360f,
-                animationSpec = InfiniteRepeatableSpec(
-                    repeatMode = RepeatMode.Restart,
-                    animation = tween(
-                        durationMillis = 2000,
-                        easing = LinearEasing
-                    )
-                )
-            )
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black), contentAlignment = Alignment.Center) {
-                Image(
-                    painter = painterResource(id = R.drawable.loading_icon),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(60.dp)
-                        .rotate(rotate)
-                )
-            }
+            LOADING()
         }
 
         is VideoDetailUiState.Success -> {
@@ -159,4 +140,41 @@ fun VideoDetailScreen(
         onCommentClick = onShowComment,
         onShareClick = onShowShare,
     )
+}
+
+@Composable
+fun LOADING(text:String = "") {
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val rotate by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = InfiniteRepeatableSpec(
+            repeatMode = RepeatMode.Restart,
+            animation = tween(
+                durationMillis = 2000,
+                easing = LinearEasing
+            )
+        )
+    )
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.loading_icon),
+            contentDescription = "",
+            modifier = Modifier
+                .size(60.dp)
+                .rotate(rotate)
+        )
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 20.sp
+        )
+    }
 }

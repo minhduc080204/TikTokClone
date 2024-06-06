@@ -38,7 +38,7 @@ fun ProfileScreen(user: User, onLognOut: () -> Unit, onUpdateProfile: () -> Unit
             .fillMaxSize()
     ){
         TopBar(user.Name, onLognOut)
-        User(user.Username, user.Phone, onUpdateProfile)
+        User(user.Username, user.Phone, user.Image, onUpdateProfile)
         UserVideo()
     }
 }
@@ -79,14 +79,14 @@ fun TopBar(name: String, onLognOut: () -> Unit){
 }
 
 @Composable
-fun User(username: String, phone: String, onUpdateProfile: () -> Unit){
+fun User(username: String, phone: String, imageUrl: String, onUpdateProfile: () -> Unit){
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp)
     ){
-        CircleImage(image = R.drawable.test_avtuser, size = 100.dp, border = 2.dp)
+        CircleImage(imageUrl = imageUrl, size = 100.dp, border = 2.dp)
         TextBold(
             text = "${username}",
             Modifier.padding(10.dp)

@@ -81,7 +81,12 @@ fun UpdateProfileScreen(user: User, onBack:() -> Unit, onUpdate:(String, String,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ){
-                CircleImage(image = R.drawable.test_avtuser, size = 70.dp)
+                CircleImage(
+                    imageUrl = user.Image, size = 70.dp,
+                    modifier = Modifier.clickable {
+
+                    }
+                )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(text = "Thay đổi ảnh")
             }

@@ -31,7 +31,7 @@ class VideoDetailViewModel @Inject constructor(
 
     init {
         videoPlayer.repeatMode = REPEAT_MODE_ALL
-        videoPlayer.playWhenReady = true
+        videoPlayer.playWhenReady = false
         videoPlayer.prepare()
     }
 
@@ -41,11 +41,9 @@ class VideoDetailViewModel @Inject constructor(
                 val videoId = action.id
                 loadVideo(videoId = videoId)
             }
-
             is VideoDetailAction.ToggleVideo -> {
                 toggleVideo()
             }
-
         }
     }
 
@@ -53,7 +51,6 @@ class VideoDetailViewModel @Inject constructor(
         _uiState.value = VideoDetailUiState.Loading
         viewModelScope.launch {
             delay(10L)
-            Log.d("VIDEOID", "$videoId")
             var videoUrl = videoRepository.getVideoObject()[videoId].urlVideo
             startplayVideo(url = videoUrl)
 

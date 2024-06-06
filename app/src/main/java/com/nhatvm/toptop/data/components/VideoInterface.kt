@@ -38,7 +38,6 @@ fun VideoInterface(
     onLikeClick:() ->Unit,
     onCommentClick:() ->Unit,
     onShareClick:() ->Unit,
-
 ){
     Row (
         verticalAlignment = Alignment.Bottom,
@@ -50,14 +49,14 @@ fun VideoInterface(
             modifier = Modifier.weight(1f)
         ){
             Row (verticalAlignment = Alignment.CenterVertically){
-                TextBold(username = videoinfor.usernameVideo)
+                TextBold(username = videoinfor.userVideo.Username)
                 Image(
                     painter = painterResource(id = R.drawable.bluetick_icon),
                     contentDescription = "blue tick"
                 )
             }
             TextWhite(videoinfor.contentVideo)
-            TextBold(videoinfor.tagsVideo.joinToString(" "))
+            TextBold("#${videoinfor.tagsVideo.joinToString(" #")}")
             Row (
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -70,7 +69,7 @@ fun VideoInterface(
 
         ){
             CircleImage(
-                image = R.drawable.test_avtuser, size = 45.dp, border = 2.dp,
+                imageUrl = videoinfor.userVideo.Image, size = 45.dp, border = 2.dp,
                 modifier = Modifier
                     .clickable {onAvatarClick()}
             )
@@ -93,18 +92,18 @@ fun VideoInterface(
                 number = "${videoinfor.shareVideo}",
                 onClick = {onShareClick()}
             )
-            AudioTrackView(trackImg = R.drawable.test_avtuser)
+            AudioTrackView(imageUrl = videoinfor.userVideo.Image)
         }
     }
 }
 
 
 @Composable
-fun TextBold(username: String){
+fun TextBold(username: String, color: Color = Color.White, fontsize: TextUnit = 16.sp){
     Text(
         text = username,
-        color = Color.White,
-        fontSize = 16.sp,
+        color = color,
+        fontSize = fontsize,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(end = 3.dp)
     )
@@ -136,7 +135,7 @@ fun ActionVideoInterface(painter: Painter, contentDescription:String, number: St
 @Composable
 fun AudioTrackView(
     modifier: Modifier = Modifier,
-    trackImg: Int = R.drawable.disc_icon
+    imageUrl: String,
 ){
     val infiniteTransition = rememberInfiniteTransition()
     val rotate by infiniteTransition.animateFloat(
@@ -151,7 +150,7 @@ fun AudioTrackView(
         )
     )
     CircleImage(
-        image = trackImg, size = 45.dp, border = 2.dp,
+        imageUrl = imageUrl, size = 45.dp, border = 2.dp,
         modifier = modifier
             .rotate(rotate)
             .clickable {
