@@ -1,9 +1,8 @@
 package com.nhatvm.toptop.data.inbox
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,20 +14,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
-import com.nhatvm.toptop.data.R
+import com.nhatvm.toptop.data.Routes
+import com.nhatvm.toptop.data.auth.repositories.User
 import com.nhatvm.toptop.data.components.CircleImage
 import com.nhatvm.toptop.data.components.TextBold
+import com.nhatvm.toptop.data.video.repository.VideoRepository
 
-@Preview(showSystemUi = true)
 @Composable
-fun InboxScreen() {
+fun InboxScreen(USERCURRENT: User, openChat:(String, String) -> Unit, openAiChat: () -> Unit) {
+    var inboxList by remember {
+        mutableStateOf<List<User>>(emptyList())
+    }
+    LaunchedEffect(Unit){
+        inboxList = VideoRepository().getInbox(USERCURRENT.id)
+    }
     Column (
         modifier = Modifier
             .fillMaxWidth()
@@ -45,8 +54,13 @@ fun InboxScreen() {
             TextBold(username = "Inbox", color = Color.Black, fontsize = 20.sp)
         }
         LazyColumn(){
-            items(15){
-                InboxItem("")
+            item(1){
+                InboxItem(user = User("", "TopTop Ai", "", "", Routes.AVT_AI)) {
+                    openAiChat()
+                }
+            }
+            items(inboxList){
+                InboxItem(it, openChat = {openChat(it.id, it.Phone)})
             }
         }
 
@@ -54,22 +68,24 @@ fun InboxScreen() {
 }
 
 @Composable
-fun InboxItem(imageUrl: String) {
+fun InboxItem(user: User, openChat:() -> Unit) {
     Row (
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)
+            .clickable {
+                openChat()
+            }
     ){
         CircleImage(
-            imageUrl = imageUrl,
+            imageUrl = user.Image,
             size = 55.dp
         )
         Spacer(modifier = Modifier.size(10.dp))
         Column {
-            TextBold(username = "bichloan", color = Color.Black, fontsize = 18.sp)
-
+            TextBold(username = "${user.Name}", color = Color.Black, fontsize = 18.sp)
             Row (
                 modifier = Modifier.fillMaxWidth()
             ){

@@ -56,7 +56,7 @@ fun TabBottomBar(
             label = { Text(text = "Inbox") }
         )
         BottomNavigationItem(
-            selected = if (selectItem == Routes.ME_SCREEN) true else false,
+            selected = if (selectItem == Routes.PROFILE_SCREEN) true else false,
             onClick = onProfileClick,
             icon = { Icon(
                 painter = painterResource(id = R.drawable.account_icon),

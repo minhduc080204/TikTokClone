@@ -31,74 +31,81 @@ import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
 import com.nhatvm.toptop.data.auth.components.InputType
 import com.nhatvm.toptop.data.auth.components.TextInput
+import com.nhatvm.toptop.data.video.LOADING
 
 @Composable
 fun SignInScreen(
     onSignIn: (String, String) -> Unit,
-    onSignUp: () -> Unit
+    onSignUp: () -> Unit,
+    isLoading: Boolean,
 ){
     val passwordFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    Column(
-        Modifier
-            .background(Color.Black)
-            .padding(24.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Bottom),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        var email by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-
-        Image(
-            painter = painterResource(id = R.drawable.toptop_logo),
-            contentDescription = "Logo"
-        )
-
-        Text(
-            text = "Đăng nhập TopTop",
-            fontSize = 35.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 30.dp)
-        )
-
-        TextInput(
-            inputType = InputType.Email,
-            onValueChanged = { email = it },
-            keyboardActions = KeyboardActions(onNext = {
-                passwordFocusRequester.requestFocus()
-            })
-        )
-        TextInput(
-            inputType = InputType.Password,
-            onValueChanged = { password = it },
-            keyboardActions = KeyboardActions(onDone = {
-                focusManager.clearFocus()
-                onSignIn(email, password)
-            }),
-            focusRequester = passwordFocusRequester
-        )
-        Button(
-            onClick = {
-                focusManager.clearFocus()
-                onSignIn(email, password)
-            },
-            modifier = Modifier.fillMaxWidth()
+    if (isLoading){
+        LOADING()
+    }else{
+        Column(
+            Modifier
+                .background(Color.Black)
+                .padding(24.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Bottom),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("SIGN IN", Modifier.padding(vertical = 8.dp))
-        }
-        Divider(
-            color = Color.White.copy(alpha = 0.3f),
-            thickness = 1.dp,
-            modifier = Modifier.padding(top = 48.dp)
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Don't have an account?", color = Color.White)
-            TextButton(onClick = { onSignUp() }) {
-                Text("SIGN UP")
+            var email by remember { mutableStateOf("") }
+            var password by remember { mutableStateOf("") }
+
+            Image(
+                painter = painterResource(id = R.drawable.toptop_logo),
+                contentDescription = "Logo"
+            )
+
+            Text(
+                text = "Đăng nhập TopTop",
+                fontSize = 35.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 30.dp)
+            )
+
+            TextInput(
+                inputType = InputType.Email,
+                onValueChanged = { email = it },
+                keyboardActions = KeyboardActions(onNext = {
+                    passwordFocusRequester.requestFocus()
+                })
+            )
+            TextInput(
+                inputType = InputType.Password,
+                onValueChanged = { password = it },
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManager.clearFocus()
+                    onSignIn(email, password)
+                }),
+                focusRequester = passwordFocusRequester
+            )
+            Button(
+                onClick = {
+                    focusManager.clearFocus()
+                    onSignIn(email, password)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("SIGN IN", Modifier.padding(vertical = 8.dp))
+            }
+            Divider(
+                color = Color.White.copy(alpha = 0.3f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(top = 48.dp)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Don't have an account?", color = Color.White)
+                TextButton(onClick = { onSignUp() }) {
+                    Text("SIGN UP")
+                }
             }
         }
     }
+
 }

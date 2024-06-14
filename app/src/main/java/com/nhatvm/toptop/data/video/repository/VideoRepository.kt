@@ -6,12 +6,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
 import com.nhatvm.toptop.data.auth.repositories.User
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.util.concurrent.Flow
 import javax.inject.Inject
 
 class VideoRepository @Inject constructor() {
@@ -32,56 +28,56 @@ class VideoRepository @Inject constructor() {
         return user
     }
     suspend fun getVideoObject(): MutableList<Video> {
-    val videos = mutableListOf<Video>()
-    val fireDatabase = FirebaseDatabase.getInstance()
+        val videos = mutableListOf<Video>()
+        val fireDatabase = FirebaseDatabase.getInstance()
 
-    val videosRef = fireDatabase.getReference("videos")
-    val snapshot = videosRef.get().await()
-    if (snapshot.exists()) {
-        for (videoSnapshot in snapshot.children) {
-            val urlVideo = videoSnapshot.child("urlvideo").getValue(String::class.java) ?: "ddd"
-            val contentVideo = videoSnapshot.child("contentVideo").getValue(String::class.java) ?: "ddd"
-            val songVideo = videoSnapshot.child("songVideo").getValue(String::class.java) ?: "ddd"
-            val likeVideo = videoSnapshot.child("likeVideo").getValue(Int::class.java) ?: 12
-            val shareVideo = videoSnapshot.child("shareVideo").getValue(Int::class.java) ?: 12
-            val tags = videoSnapshot.child("tagsVideo").children.map { it.getValue(String::class.java) ?: "" }
+        val videosRef = fireDatabase.getReference("videos")
+        val snapshot = videosRef.get().await()
+        if (snapshot.exists()) {
+            for (videoSnapshot in snapshot.children) {
+                val urlVideo = videoSnapshot.child("urlvideo").getValue(String::class.java) ?: "ddd"
+                val contentVideo = videoSnapshot.child("contentVideo").getValue(String::class.java) ?: "ddd"
+                val songVideo = videoSnapshot.child("songVideo").getValue(String::class.java) ?: "ddd"
+                val likeVideo = videoSnapshot.child("likeVideo").getValue(Int::class.java) ?: 12
+                val shareVideo = videoSnapshot.child("shareVideo").getValue(Int::class.java) ?: 12
+                val tags = videoSnapshot.child("tagsVideo").children.map { it.getValue(String::class.java) ?: "" }
 
-            val commentsRef = videoSnapshot.child("commentVideo")
-            val commentsObject = mutableListOf<Comment>()
-            for (commentRef in commentsRef.children) {
+                val commentsRef = videoSnapshot.child("commentVideo")
+                val commentsObject = mutableListOf<Comment>()
+                for (commentRef in commentsRef.children) {
 
-                val comment = commentRef.child("comment").getValue(String::class.java) ?: ""
-                val likeComment = commentRef.child("likeComment").getValue(Int::class.java) ?: 0
-                val timeComment = commentRef.child("timeComment").getValue(Long::class.java) ?: 0
-                val userIdComment = commentRef.child("userId").getValue(String::class.java) ?: ""
+                    val comment = commentRef.child("comment").getValue(String::class.java) ?: ""
+                    val likeComment = commentRef.child("likeComment").getValue(Int::class.java) ?: 0
+                    val timeComment = commentRef.child("timeComment").getValue(Long::class.java) ?: 0
+                    val userIdComment = commentRef.child("userId").getValue(String::class.java) ?: ""
 
-                val userComment = getUserById(userIdComment, {})
-                commentsObject.add(
-                    Comment(
-                        userComment,
-                        comment,
-                        likeComment,
-                        timeComment
+                    val userComment = getUserById(userIdComment, {})
+                    commentsObject.add(
+                        Comment(
+                            userComment,
+                            comment,
+                            likeComment,
+                            timeComment
+                        )
                     )
-                )
-            }
+                }
 
-            val userVideo = getUserById(videoSnapshot.child("idVideo").getValue(String::class.java)?:"", {})
-            val video = Video(
-                userVideo,
-                urlVideo,
-                contentVideo,
-                tags,
-                songVideo,
-                commentsObject,
-                likeVideo,
-                shareVideo
-            )
-            videos.add(video)
+                val userVideo = getUserById(videoSnapshot.child("idVideo").getValue(String::class.java)?:"", {})
+                val video = Video(
+                    userVideo,
+                    urlVideo,
+                    contentVideo,
+                    tags,
+                    songVideo,
+                    commentsObject,
+                    likeVideo,
+                    shareVideo
+                )
+                videos.add(video)
+            }
         }
+        return videos
     }
-    return videos
-}
 
     fun uploadVideo(
         idVideo: String,
@@ -132,6 +128,94 @@ class VideoRepository @Inject constructor() {
         }
         return comments
     }
+
+    suspend fun getInbox(myId: String): MutableList<User>{
+        val users = mutableListOf<User>()
+        val fireDatabase = FirebaseDatabase.getInstance()
+        val messagesRef = fireDatabase.getReference("messages")
+        val snapshots = messagesRef.get().await()
+        if (snapshots.exists()) {
+            for (snapshot in snapshots.children) {
+                val messageKey = snapshot.key
+                val userId1 = snapshot.child("user1").getValue(String::class.java) ?: ""
+                val userId2 = snapshot.child("user2").getValue(String::class.java) ?: ""
+
+                val user: User
+                if (userId1 == myId){
+                    user = getUserById(userId2, {})
+                    user.Phone = messageKey?: ""
+                    users.add(user)
+                    break
+                }
+                if (userId2 == myId){
+                    user = getUserById(userId1, {})
+                    user.Phone = messageKey?: ""
+                    users.add(user)
+                    break
+                }
+            }
+        }
+        return users
+    }
+
+    suspend fun getMessage1(messageId: String): MutableList<Message>{
+        val message = mutableListOf<Message>()
+        val fireDatabase = FirebaseDatabase.getInstance()
+        val messagesRef = fireDatabase.getReference("messages").child(messageId).child("messages")
+        val snapshots = messagesRef.get().await()
+        if (snapshots.exists()) {
+            for (snapshot in snapshots.children) {
+                val userId = snapshot.child("userId").getValue(String::class.java) ?: ""
+                val content = snapshot.child("content").getValue(String::class.java) ?: ""
+                val time = snapshot.child("timestamp").getValue(Long::class.java) ?: 1
+                message.add(Message(userId, content, time))
+            }
+        }
+        return message
+    }
+
+    fun getMessage(messageId: String, callback: (List<Message>) -> Unit) {
+        val messages = mutableListOf<Message>()
+        val fireDatabase = FirebaseDatabase.getInstance()
+        val messagesRef = fireDatabase.getReference("messages").child(messageId).child("messages")
+
+        messagesRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshots: DataSnapshot) {
+                messages.clear()
+                if (snapshots.exists()) {
+                    for (snapshot in snapshots.children) {
+                        val userId = snapshot.child("userId").getValue(String::class.java) ?: ""
+                        val content = snapshot.child("content").getValue(String::class.java) ?: ""
+                        val time = snapshot.child("timestamp").getValue(Long::class.java) ?: 1
+                        messages.add(Message(userId, content, time))
+                    }
+                }
+                callback(messages)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Xử lý lỗi nếu có
+            }
+        })
+    }
+
+    fun sendMessage(messageId: String, messageContent: String, userId: String) {
+        val fireDatabase = FirebaseDatabase.getInstance()
+        val messagesRef = fireDatabase.getReference("messages").child(messageId).child("messages")
+
+        val messageRef = messagesRef.push() // Tạo một node con mới với push()
+
+        val timestamp = System.currentTimeMillis() // Lấy thời gian hiện tại
+        val message = Message(userId, messageContent, timestamp) // Tạo đối tượng tin nhắn
+
+        messageRef.setValue(message) // Gửi tin nhắn lên Firebase Realtime Database
+
+        // Có thể thêm các xử lý callback ở đây nếu cần
+    }
+
+
+
+
 }
 class Video(
     val userVideo: User,
@@ -148,5 +232,11 @@ class Comment(
     val userComment: User,
     val comment: String,
     val likeComment: Int,
+    val timeComment: Long,
+)
+
+class Message(
+    val userId: String,
+    val content: String,
     val timeComment: Long,
 )

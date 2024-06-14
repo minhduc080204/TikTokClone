@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
 
 @Composable
-fun ShareBar(videoId: Int, hideShareBar: () -> Unit) {
+fun ShareBar(hideShareBar: () -> Unit, onDowload: () -> Unit) {
     Column (
         modifier = Modifier
             .fillMaxWidth()
@@ -53,11 +53,11 @@ fun ShareBar(videoId: Int, hideShareBar: () -> Unit) {
                 .fillMaxWidth()
                 .background(Color.White)
         ){
-            OptionItem(image = R.drawable.report_icon, text = "Report")
-            OptionItem(image = R.drawable.unheart_icon, text = "Not intested")
-            OptionItem(image = R.drawable.download_icon, text = "Save video")
-            OptionItem(image = R.drawable.duet_icon, text = "Duet")
-            OptionItem(image = R.drawable.react_icon, text = "React")
+            OptionItem(image = R.drawable.report_icon, text = "Report", onAction = {})
+            OptionItem(image = R.drawable.unheart_icon, text = "Not intested", onAction = {})
+            OptionItem(image = R.drawable.download_icon, text = "Save video", onAction = { onDowload();hideShareBar() })
+            OptionItem(image = R.drawable.duet_icon, text = "Duet", onAction = {})
+            OptionItem(image = R.drawable.react_icon, text = "React", onAction = {})
         }
         LineColor(color = Color.LightGray, modifier = Modifier.padding(0.dp, 10.dp))
         Row (
@@ -78,7 +78,7 @@ fun ShareBar(videoId: Int, hideShareBar: () -> Unit) {
 }
 
 @Composable
-fun OptionItem(image:Int, text:String){
+fun OptionItem(image:Int, text:String, onAction: () -> Unit){
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(70.dp)
@@ -90,6 +90,7 @@ fun OptionItem(image:Int, text:String){
                 .clip(CircleShape)
                 .size(45.dp)
                 .background(Color.LightGray)
+                .clickable { onAction() }
         ){
             Image(
                 painter = painterResource(id = image),

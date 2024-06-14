@@ -1,13 +1,11 @@
 package com.nhatvm.toptop.data.video
 
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.RawResourceDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.nhatvm.toptop.data.video.repository.VideoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,8 +29,8 @@ class VideoDetailViewModel @Inject constructor(
 
     init {
         videoPlayer.repeatMode = REPEAT_MODE_ALL
-        videoPlayer.playWhenReady = false
         videoPlayer.prepare()
+        videoPlayer.playWhenReady = false
     }
 
     fun handleAction(action: VideoDetailAction) {
@@ -75,7 +73,6 @@ class VideoDetailViewModel @Inject constructor(
         if (videoPlayer.isLoading) {
         } else {
             if (videoPlayer.isPlaying) videoPlayer.pause()
-            else videoPlayer.play()
         }
     }
 

@@ -17,9 +17,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,13 +30,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nhatvm.toptop.data.R
 import com.nhatvm.toptop.data.auth.repositories.User
+import com.nhatvm.toptop.data.theme.lightgray
 import com.nhatvm.toptop.data.video.repository.Comment
-import com.nhatvm.toptop.data.video.repository.VideoRepository
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -74,7 +76,7 @@ fun CommentScreen(usrer: User, comments: List<Comment>, onComment: (String) -> U
                     )
                 }
                 items(1){
-                    Spacer(modifier = Modifier.size(60.dp))
+                    Spacer(modifier = Modifier.size(60.dp).background(Color.White))
                 }
             }
         }
@@ -144,16 +146,15 @@ fun CommentInput(image: String, modifier: Modifier = Modifier, onComment:(String
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(245, 243, 248))
+                .background(lightgray)
                 .width(310.dp)
                 .height(50.dp)
                 .padding(10.dp)
-
         ) {
             Spacer(modifier = Modifier.size(5.dp))
             BasicTextField(
                 value = input,
-                onValueChange = {it->input=it},
+                onValueChange = {input = it},
                 modifier = Modifier.weight(1f)
             )
             Image(

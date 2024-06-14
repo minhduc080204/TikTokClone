@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.ExperimentalMaterialApi
@@ -28,6 +29,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.nhatvm.toptop.data.auth.repositories.User
 import com.nhatvm.toptop.data.components.CommentScreen
 import com.nhatvm.toptop.data.components.ShareBar
+import com.nhatvm.toptop.data.file.downloadVideo
 import com.nhatvm.toptop.data.video.VideoDetailScreen
 import com.nhatvm.toptop.data.video.VideoDetailViewModel
 import com.nhatvm.toptop.data.video.repository.Comment
@@ -42,19 +44,13 @@ import kotlinx.coroutines.tasks.await
 fun ForYouScreen(
     USERCURRENT: User,
     context: Context,
+    listVideoInfor:List<Video>
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     lateinit var fireDatabase: FirebaseDatabase
-    var currentVideoId by remember {
-        mutableStateOf(-1)
-    }
+    var currentVideoId = 0
     val pagerState = rememberPagerState()
-    var listVideoInfor by remember { mutableStateOf<List<Video>>(listOf()) }
     val coroutineScope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        listVideoInfor = VideoRepository().getVideoObject()
-        pagerState.scrollToPage(page = 0)
-    }
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val content: @Composable (() -> Unit) = {  }
     var sheetContents by remember {
@@ -85,7 +81,7 @@ fun ForYouScreen(
                 mutableStateOf<List<Comment>>(listOf())
             }
             currentVideoId = videoId
-            var isplay by remember {
+            var isplay by remember(videoId) {
                 mutableStateOf(true)
             }
             if (videoId == pagerState.currentPage){
@@ -142,9 +138,16 @@ fun ForYouScreen(
                 },
                 onShowShare = {videoId ->
                     sheetContents = {
-                        ShareBar(videoId = currentVideoId){
-                            hidesheetState()
-                        }
+                        ShareBar(
+                            hideShareBar = { hidesheetState() },
+                            onDowload = {
+                                downloadVideo(
+                                    context = context,
+                                    url = listVideoInfor[videoId].urlVideo,
+                                    fileName = "${System.currentTimeMillis()}"
+                                )
+                            }
+                        )
                     }
                     showsheetState(videoId)
                 },

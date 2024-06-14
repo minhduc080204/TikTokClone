@@ -105,8 +105,6 @@ fun VideoDetailScreen(
     }
 }
 
-
-@OptIn(ExperimentalComposeUiApi::class)
 @UnstableApi
 @Composable
 fun VideoDetailScreen(
