@@ -158,6 +158,34 @@ class VideoRepository @Inject constructor() {
         return users
     }
 
+    suspend fun setInbox(myId: String, yourId: String){
+        val fireDatabase = FirebaseDatabase.getInstance()
+        val messagesRef = fireDatabase.getReference("messages")
+        val snapshots = messagesRef.get().await()
+        if (snapshots.exists()) {
+            for (snapshot in snapshots.children) {
+                val userId1 = snapshot.child("user1").getValue(String::class.java) ?: ""
+                val userId2 = snapshot.child("user2").getValue(String::class.java) ?: ""
+                if (userId1 == myId){
+                    if (userId2 == yourId){
+                        break
+                    }
+                }
+                if (userId2 == myId){
+                    if (userId1 == yourId){
+                        break
+                    }
+                }
+            }
+        }
+        val messData = hashMapOf(
+            "user1" to myId,
+            "user2" to yourId,
+        )
+        messagesRef.push().setValue(messData)
+
+    }
+
     suspend fun getMessage1(messageId: String): MutableList<Message>{
         val message = mutableListOf<Message>()
         val fireDatabase = FirebaseDatabase.getInstance()
@@ -174,43 +202,17 @@ class VideoRepository @Inject constructor() {
         return message
     }
 
-    fun getMessage(messageId: String, callback: (List<Message>) -> Unit) {
-        val messages = mutableListOf<Message>()
-        val fireDatabase = FirebaseDatabase.getInstance()
-        val messagesRef = fireDatabase.getReference("messages").child(messageId).child("messages")
-
-        messagesRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshots: DataSnapshot) {
-                messages.clear()
-                if (snapshots.exists()) {
-                    for (snapshot in snapshots.children) {
-                        val userId = snapshot.child("userId").getValue(String::class.java) ?: ""
-                        val content = snapshot.child("content").getValue(String::class.java) ?: ""
-                        val time = snapshot.child("timestamp").getValue(Long::class.java) ?: 1
-                        messages.add(Message(userId, content, time))
-                    }
-                }
-                callback(messages)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Xử lý lỗi nếu có
-            }
-        })
-    }
 
     fun sendMessage(messageId: String, messageContent: String, userId: String) {
         val fireDatabase = FirebaseDatabase.getInstance()
         val messagesRef = fireDatabase.getReference("messages").child(messageId).child("messages")
 
-        val messageRef = messagesRef.push() // Tạo một node con mới với push()
+        val messageRef = messagesRef.push()
 
-        val timestamp = System.currentTimeMillis() // Lấy thời gian hiện tại
-        val message = Message(userId, messageContent, timestamp) // Tạo đối tượng tin nhắn
+        val timestamp = System.currentTimeMillis()
+        val message = Message(userId, messageContent, timestamp)
 
-        messageRef.setValue(message) // Gửi tin nhắn lên Firebase Realtime Database
-
-        // Có thể thêm các xử lý callback ở đây nếu cần
+        messageRef.setValue(message)
     }
 
 

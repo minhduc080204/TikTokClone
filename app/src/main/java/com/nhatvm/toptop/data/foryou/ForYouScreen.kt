@@ -90,11 +90,17 @@ fun ForYouScreen(
                 isplay = false
             }
             val viewModel: VideoDetailViewModel = hiltViewModel(key = videoId.toString())
-
+            var isLike by remember {
+                mutableStateOf(false)
+            }
             VideoDetailScreen(
                 videoId = videoId,
                 videoinfor = listVideoInfor[videoId],
                 viewModel = viewModel,
+                isLike = isLike,
+                onLike = {
+                         isLike = !isLike
+                },
                 onShowComment = {videoId ->
                     coroutineScope.launch {
                         comments = VideoRepository().getVideoObject()[videoId].commentVideo

@@ -336,7 +336,11 @@ fun MainScreen() {
                     }
                 }
                 composable(Routes.DISCOVER_SCREEN){
-                    DiscoverScreen()
+                    DiscoverScreen(
+                        myId = USERCURRENT.id
+                    ){
+                        navController.navigate(Routes.INBOX_SCREEN)
+                    }
                 }
                 composable(Routes.INBOX_SCREEN){
                     isShowBottomTab = true

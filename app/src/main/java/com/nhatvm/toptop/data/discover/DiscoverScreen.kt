@@ -39,11 +39,12 @@ import com.nhatvm.toptop.data.components.CircleImage
 import com.nhatvm.toptop.data.components.TextBold
 import com.nhatvm.toptop.data.theme.lightgray
 import com.nhatvm.toptop.data.theme.lightred
+import com.nhatvm.toptop.data.video.repository.VideoRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @Composable
-fun DiscoverScreen() {
+fun DiscoverScreen(myId: String, onInbox: () -> Unit) {
     val fireDatabase = FirebaseDatabase.getInstance()
     val userRef = fireDatabase.getReference("users")
     val coroutineScope = rememberCoroutineScope()
@@ -95,10 +96,11 @@ fun DiscoverScreen() {
                             for (child in snapshot.children) {
                                 val username = child.child("username").getValue(String::class.java) ?: ""
                                 if (username.contains(input)) {
+                                    val id = child.child("id").getValue(String::class.java) ?: ""
                                     val name = child.child("name").getValue(String::class.java) ?: ""
                                     val phone = child.child("phone").getValue(String::class.java) ?: ""
                                     val image = child.child("image").getValue(String::class.java) ?: ""
-                                    usersList.add(User("", name, phone, username, image))
+                                    usersList.add(User(id, name, phone, username, image))
                                 }
                             }
                         }
@@ -123,7 +125,12 @@ fun DiscoverScreen() {
             }
             LazyColumn(){
                 items(users){
-                    UserItem(it)
+                    UserItem(it){
+                        coroutineScope.launch {
+                            VideoRepository().setInbox(myId, it.id)
+                            onInbox()
+                        }
+                    }
                 }
             }
         }
@@ -131,7 +138,7 @@ fun DiscoverScreen() {
 }
 
 @Composable
-fun UserItem(user: User) {
+fun UserItem(user: User, onInbox:() -> Unit) {
     Row (
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -155,7 +162,7 @@ fun UserItem(user: User) {
             }
         }
         Button(
-            onClick = { /*TODO*/ },
+            onClick = { onInbox() },
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = lightred
             ),

@@ -43,6 +43,8 @@ fun VideoDetailScreen(
     videoId: Int,
     videoinfor: Video,
     viewModel: VideoDetailViewModel = hiltViewModel(),
+    isLike: Boolean,
+    onLike: () -> Unit,
     onShowComment: (Int) -> Unit,
     onShowShare: (Int) -> Unit,
     isPlaying: Boolean
@@ -67,7 +69,9 @@ fun VideoDetailScreen(
         videoinfor = videoinfor,
         uiState = uiState.value,
         player = viewModel.videoPlayer,
-        onShowComment = {onShowComment(videoId)},
+        isLike = isLike,
+        onLike = { onLike() },
+        onShowComment = { onShowComment(videoId) },
         onShowShare = { onShowShare(videoId)}
     ) { aciton ->
         viewModel.handleAction(action = aciton)
@@ -80,6 +84,8 @@ fun VideoDetailScreen(
     uiState: VideoDetailUiState,
     videoinfor: Video,
     player: Player,
+    isLike: Boolean,
+    onLike: () -> Unit,
     onShowComment: () -> Unit,
     onShowShare: () -> Unit,
     handleAction: (VideoDetailAction) -> Unit
@@ -94,6 +100,8 @@ fun VideoDetailScreen(
                 videoinfor = videoinfor,
                 player = player,
                 handleAction = handleAction,
+                isLike = isLike,
+                onLike = onLike,
                 onShowComment = onShowComment,
                 onShowShare = onShowShare
             )
@@ -111,6 +119,8 @@ fun VideoDetailScreen(
     player: Player,
     videoinfor: Video,
     handleAction: (VideoDetailAction) -> Unit,
+    isLike: Boolean,
+    onLike: () -> Unit,
     onShowComment: () -> Unit,
     onShowShare: () -> Unit,
 ) {
@@ -134,7 +144,8 @@ fun VideoDetailScreen(
     VideoInterface(
         videoinfor = videoinfor,
         onAvatarClick = {},
-        onLikeClick = {},
+        isLike = isLike,
+        onLikeClick = onLike,
         onCommentClick = onShowComment,
         onShareClick = onShowShare,
     )
